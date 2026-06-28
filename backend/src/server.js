@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 import { connectDB } from './config/database.js';
 import demoRouter from './demo/demoRouter.js';
@@ -17,7 +18,12 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const DEMO_MODE = process.env.DEMO_MODE === 'true';
+// Explicit DEMO_MODE wins. With no database configured, fall back to the
+// in-memory demo so a fresh hosted deployment remains usable.
+const DEMO_MODE = process.env.DEMO_MODE === 'true' ||
+  (process.env.DEMO_MODE !== 'false' && !process.env.MONGODB_URI);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const PUBLIC_DIR = path.resolve(__dirname, '../public');
 
 console.log('===================================');
 console.log(`Demo Mode: ${DEMO_MODE}`);
@@ -64,11 +70,11 @@ if (DEMO_MODE) {
 }
 
 // Serve React build
-app.use(express.static(path.join(process.cwd(), 'public')));
+app.use(express.static(PUBLIC_DIR));
 
 // React fallback
 app.get(/.*/, (req, res) => {
-  res.sendFile(path.join(process.cwd(), 'public', 'index.html'));
+  res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
 });
 
 // Start server

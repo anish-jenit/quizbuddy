@@ -361,6 +361,40 @@ router.post('/auth/login', (req, res) => {
   });
 });
 
+router.post('/auth/guest', (req, res) => {
+  const name = String(req.body?.name || '').trim().replace(/\s+/g, ' ');
+
+  if (name.length < 2 || name.length > 40) {
+    return res.status(400).json({ message: 'Please enter a name between 2 and 40 characters' });
+  }
+
+  const [firstName, ...lastNameParts] = name.split(' ');
+  const user = {
+    id: randomUUID(),
+    email: `guest-${randomUUID()}@demo.local`,
+    firstName,
+    lastName: lastNameParts.join(' '),
+    password: null,
+    role: 'student',
+    isGuest: true,
+    approvalStatus: 'approved',
+    requestedRole: null,
+    isEmailVerified: false,
+    groups: [],
+    createdAt: nowIso(),
+    updatedAt: nowIso()
+  };
+
+  state.users.push(user);
+
+  return res.status(201).json({
+    success: true,
+    message: 'Guest session created',
+    token: signToken(user),
+    user: stripPassword(user)
+  });
+});
+
 router.post('/auth/reset-teacher-password', (req, res) => {
   const { email, newPassword, confirmPassword } = req.body;
 

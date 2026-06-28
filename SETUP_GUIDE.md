@@ -13,7 +13,19 @@ DEMO_MODE=true PORT=5050 npm run dev
 
 Demo credentials:
 - Mentor: `mock-mentor@example.com` / `MockPass@123`
+- Student: `student1@example.com` / `student1`
 - Admin: `admin@example.com` / `Admin@123`
+
+Students can also choose guest mode from Student Login and enter an anonymous
+leaderboard name. Guests can attempt published quizzes belonging to public
+groups. Their scores and session exist only until the demo server restarts.
+
+For hosting without MongoDB, set `DEMO_MODE=true`. If `MONGODB_URI` is not
+configured, the backend automatically starts in demo mode. Demo data is held in
+memory and resets whenever the hosted service restarts.
+
+The frontend uses the same hosted origin at `/api` by default. Only set
+`VITE_API_URL` when the frontend and backend are deployed on different hosts.
 
 Run smoke test against demo mode:
 
