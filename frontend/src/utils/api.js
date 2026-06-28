@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5050/api';
+// In production the React app is served by the API server, so a relative URL
+// keeps requests on the same host. Local Vite development proxies /api.
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -24,6 +26,7 @@ export default api;
 export const authAPI = {
   register: (data) => api.post('/auth/register', data),
   login: (data) => api.post('/auth/login', data),
+  guestLogin: (data) => api.post('/auth/guest', data),
   resetTeacherPassword: (data) => api.post('/auth/reset-teacher-password', data),
   getCurrentUser: () => api.get('/auth/me'),
   updateProfile: (data) => api.put('/auth/profile', data),

@@ -101,6 +101,10 @@ const TeacherLogin = () => {
             Request Mentor Access
           </button>
         </p>
+
+        <Button variant="secondary" className="mt-4 w-full justify-center" onClick={() => navigate('/')}>
+          Home
+        </Button>
       </Card>
     </div>
   );

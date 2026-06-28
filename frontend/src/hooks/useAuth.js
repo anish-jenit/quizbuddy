@@ -48,6 +48,22 @@ export const useAuth = () => {
     }
   };
 
+  const guestLogin = async (name) => {
+    try {
+      setLoading(true);
+      clearError();
+      const response = await authAPI.guestLogin({ name });
+      setToken(response.data.token);
+      setUser(response.data.user);
+      return response.data;
+    } catch (err) {
+      setError(err.response?.data?.message || 'Guest login failed');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fetchCurrentUser = async () => {
     try {
       setLoading(true);
@@ -77,6 +93,7 @@ export const useAuth = () => {
     clearError,
     register,
     login,
+    guestLogin,
     logout,
     fetchCurrentUser,
   };
