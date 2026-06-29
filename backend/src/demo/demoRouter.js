@@ -4,6 +4,7 @@ import { randomUUID } from 'crypto';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { parseQuizCsv, quizCsvTemplate } from './csvQuizImporter.js';
+import { additionalQuizSets } from './additionalQuizSets.js';
 
 const router = express.Router();
 
@@ -208,6 +209,7 @@ const importQuizSpecs = (quizSpecs, createdBy) => {
 const adminSeedUser = baseUsers.find((user) => user.role === 'admin');
 const defaultCsvPath = fileURLToPath(new URL('./default-quizzes.csv', import.meta.url));
 importQuizSpecs(parseQuizCsv(readFileSync(defaultCsvPath, 'utf8')), adminSeedUser.id);
+importQuizSpecs(additionalQuizSets, adminSeedUser.id);
 
 const stripPassword = (user) => {
   const { password, ...safeUser } = user;
