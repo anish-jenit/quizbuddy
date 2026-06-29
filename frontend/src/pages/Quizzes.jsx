@@ -3,14 +3,25 @@ import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import { quizAPI } from '../utils/api';
 import { Card, Button, Loading, Alert } from '../components/UI';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Share2, ThumbsUp, ThumbsDown, Flag, Globe, Lock } from 'lucide-react';
 
+const CORE_GENRES = [
+  { name: 'Tamil', description: 'Language and culture' },
+  { name: 'English', description: 'Vocabulary and grammar' },
+  { name: 'Math', description: 'Numbers and reasoning' },
+  { name: 'Science', description: 'Nature and discovery' },
+  { name: 'History', description: 'People and places' }
+];
+
 const Quizzes = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const isMentorOrAdmin = user?.role === 'mentor' || user?.role === 'admin';
+  const requestedGenre = searchParams.get('genre') || '';
+  const selectedGenre = CORE_GENRES.some((genre) => genre.name === requestedGenre) ? requestedGenre : '';
   const [quizzes, setQuizzes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -23,9 +34,20 @@ const Quizzes = () => {
   };
 
   const fetchQuizzes = async () => {
+    if (!isMentorOrAdmin && !selectedGenre) {
+      setQuizzes([]);
+      setError(null);
+      setIsLoading(false);
+      return;
+    }
     try {
       setIsLoading(true);
-      const response = await quizAPI.getQuizzes(isMentorOrAdmin ? { sortBy } : { isPublished: 'true', sortBy });
+      setError(null);
+      const response = await quizAPI.getQuizzes(
+        isMentorOrAdmin
+          ? { sortBy }
+          : { isPublished: 'true', category: selectedGenre, sortBy }
+      );
       setQuizzes(response.data.quizzes || []);
     } catch (err) {
       setError('Failed to load quizzes');
@@ -47,7 +69,7 @@ const Quizzes = () => {
 
   useEffect(() => {
     fetchQuizzes();
-  }, [isMentorOrAdmin, sortBy]);
+  }, [isMentorOrAdmin, selectedGenre, sortBy]);
 
   if (isLoading) return <Loading />;
 
@@ -59,10 +81,18 @@ const Quizzes = () => {
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <h1 className="text-3xl font-bold">{isMentorOrAdmin ? 'Manage Quizzes' : 'Available Quizzes'}</h1>
-              <p className="mt-2 text-sm text-gray-500">Browse by popularity, visibility, and moderation status.</p>
+              <h1 className="text-3xl font-bold">
+                {isMentorOrAdmin ? 'Manage Quizzes' : selectedGenre ? `${selectedGenre} Quizzes` : 'Choose a Genre'}
+              </h1>
+              <p className="mt-2 text-sm text-gray-500">
+                {isMentorOrAdmin
+                  ? 'Browse by popularity, visibility, and moderation status.'
+                  : selectedGenre
+                    ? `Showing public quizzes tagged ${selectedGenre}.`
+                    : 'Select a genre to discover its public quizzes.'}
+              </p>
             </div>
-            <div className="w-full md:max-w-xs">
+            {(isMentorOrAdmin || selectedGenre) && <div className="w-full md:max-w-xs">
               <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
               <select
                 value={sortBy}
@@ -74,16 +104,39 @@ const Quizzes = () => {
                 <option value="title">Title</option>
                 <option value="mostDisliked">Most disliked</option>
               </select>
-            </div>
+            </div>}
           </div>
 
           {error && <div className="mb-6"><Alert type="error">{error}</Alert></div>}
 
-          {quizzes.length === 0 ? (
+          {!isMentorOrAdmin && !selectedGenre ? (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {CORE_GENRES.map((genre) => (
+                <button
+                  key={genre.name}
+                  type="button"
+                  onClick={() => setSearchParams({ genre: genre.name })}
+                  className="rounded-xl border border-gray-200 bg-white p-6 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md"
+                >
+                  <span className="mb-3 inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">Core Genre</span>
+                  <h2 className="text-xl font-bold text-gray-900">{genre.name}</h2>
+                  <p className="mt-2 text-sm text-gray-600">{genre.description}</p>
+                  <p className="mt-5 font-medium text-blue-600">View quizzes →</p>
+                </button>
+              ))}
+            </div>
+          ) : quizzes.length === 0 ? (
             <Card className="text-center">
-              <p className="text-gray-500">No quizzes available yet</p>
+              <p className="text-gray-500">No public {selectedGenre} quizzes available yet.</p>
+              {!isMentorOrAdmin && (
+                <Button variant="secondary" className="mt-4" onClick={() => setSearchParams({})}>Choose Another Genre</Button>
+              )}
             </Card>
           ) : (
+            <>
+            {!isMentorOrAdmin && (
+              <Button variant="secondary" className="mb-6" onClick={() => setSearchParams({})}>← All Genres</Button>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {quizzes.map(quiz => {
                 const quizId = quiz._id || quiz.id;
@@ -172,6 +225,7 @@ const Quizzes = () => {
                 </Card>
               );})}
             </div>
+            </>
           )}
         </div>
       </div>
