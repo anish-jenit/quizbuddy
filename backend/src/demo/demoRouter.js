@@ -215,7 +215,17 @@ const stripPassword = (user) => {
 };
 
 const signToken = (user) =>
-  jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: JWT_EXPIRE });
+  jwt.sign({
+    id: user.id,
+    role: user.role,
+    sessionUser: {
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      nickname: user.nickname || '',
+      isGuest: !!user.isGuest
+    }
+  }, JWT_SECRET, { expiresIn: JWT_EXPIRE });
 
 const getUserById = (id) => state.users.find((user) => user.id === id);
 const getGroupById = (id) => state.groups.find((group) => group.id === id);
@@ -299,7 +309,30 @@ const auth = (req, res, next) => {
     if (!token) return res.status(401).json({ message: 'No token provided' });
 
     const decoded = jwt.verify(token, JWT_SECRET);
-    const user = getUserById(decoded.id);
+    let user = getUserById(decoded.id);
+
+    // Demo hosting can recycle the Node process while a browser still holds a
+    // valid JWT. Restore the trusted session identity embedded in newer tokens
+    // so the player is not rejected merely because in-memory users were reset.
+    if (!user && decoded.sessionUser?.email) {
+      user = {
+        id: decoded.id,
+        email: decoded.sessionUser.email,
+        firstName: decoded.sessionUser.firstName || 'Player',
+        lastName: decoded.sessionUser.lastName || '',
+        nickname: decoded.sessionUser.nickname || '',
+        password: null,
+        role: decoded.role || 'student',
+        isGuest: !!decoded.sessionUser.isGuest,
+        approvalStatus: 'approved',
+        requestedRole: null,
+        isEmailVerified: !decoded.sessionUser.isGuest,
+        groups: [],
+        createdAt: nowIso(),
+        updatedAt: nowIso()
+      };
+      state.users.push(user);
+    }
 
     if (!user) return res.status(401).json({ message: 'Invalid token user' });
 

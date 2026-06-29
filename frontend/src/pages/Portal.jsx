@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Card, Button, Input, Alert } from '../components/UI';
 
 const Portal = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { guestLogin, isLoading, error, clearError } = useAuth();
   const [guestName, setGuestName] = useState('');
 
@@ -23,6 +24,9 @@ const Portal = () => {
         <h1 className="text-4xl font-bold text-center mb-3 text-blue-700">QuizBuddy</h1>
         <p className="text-center text-gray-600 mb-10">Your multi-subject quiz platform — choose your portal to continue</p>
 
+        {searchParams.get('session') === 'expired' && (
+          <div className="mb-6"><Alert type="warning">Your demo session expired after the server restarted. Please log in or continue as a guest again.</Alert></div>
+        )}
         {error && <div className="mb-6"><Alert type="error">{error}</Alert></div>}
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
