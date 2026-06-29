@@ -16,6 +16,7 @@ import CreateQuiz from './pages/CreateQuiz';
 import AddQuizQuestions from './pages/AddQuizQuestions';
 import Leaderboard from './pages/Leaderboard';
 import AdminDashboard from './pages/AdminDashboard';
+import Challenge from './pages/Challenge';
 import './styles/globals.css';
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
         <Route path="/login/teacher/reset-password" element={<TeacherResetPassword />} />
         <Route path="/register/teacher" element={<TeacherRegister />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/challenge/:code" element={<Challenge />} />
 
         {/* Protected Routes */}
         <Route

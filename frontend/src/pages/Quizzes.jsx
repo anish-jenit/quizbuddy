@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
-import { quizAPI } from '../utils/api';
-import { Card, Button, Loading, Alert } from '../components/UI';
+import { challengeAPI, quizAPI } from '../utils/api';
+import { Card, Button, Loading, Alert, Modal } from '../components/UI';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Share2, ThumbsUp, ThumbsDown, Flag, Globe, Lock } from 'lucide-react';
@@ -26,6 +26,30 @@ const Quizzes = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [sortBy, setSortBy] = useState(isMentorOrAdmin ? 'newest' : 'mostLiked');
+  const [challenge, setChallenge] = useState(null);
+  const [isCreatingChallenge, setIsCreatingChallenge] = useState(false);
+  const [copyMessage, setCopyMessage] = useState('');
+
+  const challengeUrl = challenge ? `${window.location.origin}/challenge/${challenge.code}` : '';
+
+  const createChallenge = async (quizId) => {
+    try {
+      setIsCreatingChallenge(true);
+      setError(null);
+      const response = await challengeAPI.create(quizId);
+      setChallenge(response.data.challenge);
+      setCopyMessage('');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to create challenge');
+    } finally {
+      setIsCreatingChallenge(false);
+    }
+  };
+
+  const copyChallengeLink = async () => {
+    await navigator.clipboard.writeText(challengeUrl);
+    setCopyMessage('Challenge link copied!');
+  };
 
   const shareQuizOnWhatsApp = (quiz, quizId) => {
     const appUrl = window.location.origin;
@@ -212,14 +236,27 @@ const Quizzes = () => {
                       )}
                     </div>
                   ) : (
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => navigate(`/quiz/${quizId}`)}
-                      className="w-full justify-center"
-                    >
-                      Start Quiz
-                    </Button>
+                    <div className="space-y-2">
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => navigate(`/quiz/${quizId}`)}
+                        className="w-full justify-center"
+                      >
+                        Start Quiz
+                      </Button>
+                      {user?.isGuest && quiz.visibility === 'public' && (
+                        <Button
+                          variant="success"
+                          size="sm"
+                          isLoading={isCreatingChallenge}
+                          onClick={() => createChallenge(quizId)}
+                          className="w-full justify-center"
+                        >
+                          Challenge a Friend
+                        </Button>
+                      )}
+                    </div>
                   )}
                   </div>
                 </Card>
@@ -229,6 +266,23 @@ const Quizzes = () => {
           )}
         </div>
       </div>
+      <Modal isOpen={!!challenge} onClose={() => setChallenge(null)} title="Challenge Created">
+        {challenge && (
+          <div className="space-y-4">
+            <p className="text-gray-700">Share this link with one friend. They can choose a guest nickname and take the same quiz.</p>
+            <div className="break-all rounded-lg bg-gray-100 p-3 text-sm font-mono">{challengeUrl}</div>
+            {copyMessage && <Alert type="success">{copyMessage}</Alert>}
+            <Button variant="secondary" className="w-full justify-center" onClick={copyChallengeLink}>Copy Challenge Link</Button>
+            <Button
+              variant="primary"
+              className="w-full justify-center"
+              onClick={() => navigate(`/quiz/${challenge.quiz.id}?challenge=${challenge.code}`)}
+            >
+              Start My Challenge
+            </Button>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

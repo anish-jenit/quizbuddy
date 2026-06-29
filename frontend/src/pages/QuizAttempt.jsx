@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import { Card, Button, Loading, Alert, Input, Modal } from '../components/UI';
@@ -9,6 +9,8 @@ import { ThumbsUp, ThumbsDown, Flag } from 'lucide-react';
 const QuizAttempt = () => {
   const { id: quizId } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const challengeCode = searchParams.get('challenge') || '';
 
   const [quiz, setQuiz] = useState(null);
   const [questions, setQuestions] = useState([]);
@@ -43,7 +45,7 @@ const QuizAttempt = () => {
     try {
       const [quizRes, startRes] = await Promise.all([
         quizAPI.getQuizById(quizId),
-        responseAPI.startQuiz({ quizId, isGroupAttempt: false })
+        responseAPI.startQuiz({ quizId, isGroupAttempt: false, challengeCode: challengeCode || undefined })
       ]);
 
       setQuiz(quizRes.data.quiz);
@@ -71,7 +73,7 @@ const QuizAttempt = () => {
 
   useEffect(() => {
     startAttempt();
-  }, [quizId]);
+  }, [quizId, challengeCode]);
 
   const handleJoinGroup = async (e) => {
     e.preventDefault();
@@ -275,6 +277,9 @@ const QuizAttempt = () => {
               <div className="flex gap-3 justify-center">
                 <Button variant="secondary" onClick={() => navigate('/quizzes')}>Back to Quizzes</Button>
                 <Button variant="primary" onClick={() => navigate('/leaderboard')}>View Leaderboard</Button>
+                {result.challengeCode && (
+                  <Button variant="success" onClick={() => navigate(`/challenge/${result.challengeCode}`)}>View Challenge</Button>
+                )}
               </div>
             </Card>
           </div>

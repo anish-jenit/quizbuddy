@@ -24,7 +24,8 @@ const state = {
   questions: [],
   responses: [],
   groups: [],
-  leaderboards: []
+  leaderboards: [],
+  challenges: []
 };
 
 const demoSeedUsers = [
@@ -231,6 +232,9 @@ const signToken = (user) =>
 
 const getUserById = (id) => state.users.find((user) => user.id === id);
 const getGroupById = (id) => state.groups.find((group) => group.id === id);
+const getChallengeByCode = (code) => state.challenges.find(
+  (challenge) => challenge.code === String(code || '').trim().toUpperCase()
+);
 
 const summarizeUser = (user) => (
   user
@@ -364,6 +368,38 @@ const sanitizeQuestionForAttempt = (question) => ({
 });
 
 const findQuizQuestions = (quizId) => state.questions.filter((q) => q.quiz === quizId);
+
+const serializeChallenge = (challenge) => {
+  const quiz = state.quizzes.find((item) => item.id === challenge.quiz);
+  const participants = challenge.participants.map((participant) => {
+    const user = getUserById(participant.user);
+    return {
+      nickname: user?.nickname || [user?.firstName, user?.lastName].filter(Boolean).join(' ') || 'Guest Player',
+      isCreator: participant.user === challenge.createdBy,
+      status: participant.status,
+      score: participant.score,
+      percentageScore: participant.percentageScore,
+      duration: participant.duration,
+      finishedAt: participant.finishedAt
+    };
+  });
+  const finished = participants.filter((participant) => participant.status === 'completed');
+  let winner = null;
+  if (finished.length === 2) {
+    const ranked = [...finished].sort((a, b) => b.percentageScore - a.percentageScore || a.duration - b.duration);
+    winner = ranked[0].percentageScore === ranked[1].percentageScore && ranked[0].duration === ranked[1].duration
+      ? { isTie: true }
+      : { nickname: ranked[0].nickname, isTie: false };
+  }
+  return {
+    code: challenge.code,
+    status: finished.length === 2 ? 'completed' : participants.length === 2 ? 'accepted' : 'pending',
+    quiz: quiz ? { id: quiz.id, _id: quiz.id, title: quiz.title, category: quiz.category, difficulty: quiz.difficulty } : null,
+    participants,
+    winner,
+    expiresAt: challenge.expiresAt
+  };
+};
 
 const updateLeaderboard = (quizId, studentId, groupId) => {
   const completedResponses = state.responses.filter(
@@ -925,8 +961,63 @@ router.post('/questions/:id/report', auth, (req, res) => {
   return res.status(200).json({ success: true, message: 'Question reported successfully', question });
 });
 
+router.post('/challenges', auth, (req, res) => {
+  const quiz = state.quizzes.find((item) => item.id === req.body?.quizId);
+  if (!quiz || !canStudentAttemptQuiz(quiz, req.user.id)) {
+    return res.status(400).json({ message: 'Only an available public quiz can be challenged' });
+  }
+
+  let code;
+  do {
+    code = randomUUID().replace(/-/g, '').slice(0, 8).toUpperCase();
+  } while (getChallengeByCode(code));
+
+  const challenge = {
+    id: randomUUID(),
+    code,
+    quiz: quiz.id,
+    createdBy: req.user.id,
+    participants: [{ user: req.user.id, status: 'ready', score: null, percentageScore: null, duration: null, finishedAt: null }],
+    createdAt: nowIso(),
+    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+  };
+  state.challenges.push(challenge);
+  return res.status(201).json({ success: true, message: 'Challenge created', challenge: serializeChallenge(challenge) });
+});
+
+router.get('/challenges/:code', (req, res) => {
+  const challenge = getChallengeByCode(req.params.code);
+  if (!challenge) return res.status(404).json({ message: 'Challenge not found or expired' });
+  if (new Date(challenge.expiresAt).getTime() < Date.now()) {
+    return res.status(410).json({ message: 'This challenge has expired' });
+  }
+  return res.status(200).json({ success: true, challenge: serializeChallenge(challenge) });
+});
+
+router.post('/challenges/:code/accept', auth, (req, res) => {
+  const challenge = getChallengeByCode(req.params.code);
+  if (!challenge) return res.status(404).json({ message: 'Challenge not found or expired' });
+  if (new Date(challenge.expiresAt).getTime() < Date.now()) {
+    return res.status(410).json({ message: 'This challenge has expired' });
+  }
+
+  const existing = challenge.participants.find((participant) => participant.user === req.user.id);
+  if (!existing) {
+    if (challenge.participants.length >= 2) return res.status(409).json({ message: 'This challenge already has two players' });
+    challenge.participants.push({
+      user: req.user.id,
+      status: 'ready',
+      score: null,
+      percentageScore: null,
+      duration: null,
+      finishedAt: null
+    });
+  }
+  return res.status(200).json({ success: true, message: 'Challenge accepted', challenge: serializeChallenge(challenge) });
+});
+
 router.post('/responses/start', auth, (req, res) => {
-  const { quizId, isGroupAttempt, groupId } = req.body;
+  const { quizId, isGroupAttempt, groupId, challengeCode } = req.body;
   const quiz = state.quizzes.find((item) => item.id === quizId);
 
   if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
@@ -953,12 +1044,29 @@ router.post('/responses/start', auth, (req, res) => {
     }
   }
 
+  let challenge = null;
+  if (challengeCode) {
+    challenge = getChallengeByCode(challengeCode);
+    if (!challenge || challenge.quiz !== quizId) {
+      return res.status(400).json({ message: 'Invalid challenge for this quiz' });
+    }
+    if (!challenge.participants.some((participant) => participant.user === req.user.id)) {
+      return res.status(403).json({ message: 'Accept this challenge before starting the quiz' });
+    }
+    const participant = challenge.participants.find((item) => item.user === req.user.id);
+    if (participant.status === 'completed') {
+      return res.status(409).json({ message: 'You have already completed this challenge' });
+    }
+    participant.status = 'in-progress';
+  }
+
   const response = {
     id: randomUUID(),
     _id: null,
     quiz: quizId,
     student: req.user.id,
     group: groupId || null,
+    challenge: challenge?.id || null,
     isGroupAttempt: !!isGroupAttempt,
     answers: [],
     totalScore: 0,
@@ -1070,6 +1178,18 @@ router.put('/responses/:responseId/complete', auth, (req, res) => {
 
   updateLeaderboard(response.quiz, response.student, response.group);
 
+  if (response.challenge) {
+    const challenge = state.challenges.find((item) => item.id === response.challenge);
+    const participant = challenge?.participants.find((item) => item.user === response.student);
+    if (participant) {
+      participant.status = 'completed';
+      participant.score = totalScore;
+      participant.percentageScore = percentageScore;
+      participant.duration = duration;
+      participant.finishedAt = nowIso();
+    }
+  }
+
   return res.status(200).json({
     success: true,
     message: 'Quiz completed',
@@ -1078,7 +1198,10 @@ router.put('/responses/:responseId/complete', auth, (req, res) => {
       percentageScore,
       correctAnswers,
       totalQuestions: response.answers.length,
-      duration
+      duration,
+      challengeCode: response.challenge
+        ? state.challenges.find((item) => item.id === response.challenge)?.code || null
+        : null
     }
   });
 });

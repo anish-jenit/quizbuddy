@@ -78,6 +78,12 @@ export const responseAPI = {
   getLeaderboard: (params) => api.get('/responses/leaderboard', { params }),
 };
 
+export const challengeAPI = {
+  create: (quizId) => api.post('/challenges', { quizId }),
+  get: (code) => api.get(`/challenges/${code}`),
+  accept: (code) => api.post(`/challenges/${code}/accept`),
+};
+
 // Group APIs
 export const groupAPI = {
   createGroup: (data) => api.post('/groups', data),
