@@ -10,7 +10,8 @@ import {
   getPendingMentors,
   reviewMentorRequest,
   addStudentByEmail,
-  removeStudent
+  removeStudent,
+  updateGroupVisibility
 } from '../controllers/groupController.js';
 import { authenticate } from '../middleware/auth.js';
 
@@ -27,5 +28,6 @@ router.get('/:id/pending-mentors', authenticate, getPendingMentors);
 router.put('/:id/review-mentor', authenticate, reviewMentorRequest);
 router.post('/:id/add-student', authenticate, addStudentByEmail);
 router.post('/:id/remove-student', authenticate, removeStudent);
+router.put('/:id/visibility', authenticate, updateGroupVisibility);
 
 export default router;

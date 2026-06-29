@@ -4,6 +4,7 @@ import QuizResponse from '../models/QuizResponse.js';
 import Group from '../models/Group.js';
 
 const QUIZ_REPORT_THRESHOLD = 5;
+const CORE_GENRES = ['Tamil', 'English', 'Math', 'Science', 'History'];
 
 const populateQuiz = (query) => query
   .populate('createdBy', 'firstName lastName email')
@@ -68,8 +69,8 @@ export const createQuiz = async (req, res) => {
   try {
     const { title, description, category, difficulty, groupId, timePerQuestion } = req.body;
 
-    if (!title || !category) {
-      return res.status(400).json({ message: 'Title and category are required' });
+    if (!title) {
+      return res.status(400).json({ message: 'Title is required' });
     }
 
     let group = null;
@@ -98,10 +99,17 @@ export const createQuiz = async (req, res) => {
       }
     }
 
+    if (group?.quizVisibility === 'public' && !CORE_GENRES.includes(category)) {
+      return res.status(400).json({ message: 'Public quizzes must have one of the five core genres' });
+    }
+    if (category && !CORE_GENRES.includes(category)) {
+      return res.status(400).json({ message: 'Invalid quiz genre' });
+    }
+
     const quiz = new Quiz({
       title,
       description,
-      category,
+      category: category || undefined,
       difficulty: difficulty || 'medium',
       createdBy: req.user._id,
       group: groupId || null,
@@ -185,7 +193,13 @@ export const updateQuiz = async (req, res) => {
       return res.status(403).json({ message: 'Unauthorized to update this quiz' });
     }
 
-    const updatedQuiz = await Quiz.findByIdAndUpdate(id, req.body, { new: true });
+    const group = quiz.group ? await Group.findById(quiz.group) : null;
+    const nextGenre = req.body.category !== undefined ? req.body.category : quiz.category;
+    if (group?.quizVisibility === 'public' && !CORE_GENRES.includes(nextGenre)) {
+      return res.status(400).json({ message: 'Public quizzes must have one of the five core genres' });
+    }
+
+    const updatedQuiz = await Quiz.findByIdAndUpdate(id, req.body, { new: true, runValidators: true });
 
     res.status(200).json({
       success: true,
@@ -239,6 +253,11 @@ export const publishQuiz = async (req, res) => {
 
     if (questionCount > 10) {
       return res.status(400).json({ message: 'Quiz cannot have more than 10 questions' });
+    }
+
+    const group = quiz.group ? await Group.findById(quiz.group) : null;
+    if (group?.quizVisibility === 'public' && !CORE_GENRES.includes(quiz.category)) {
+      return res.status(400).json({ message: 'Choose a core genre before publishing this public quiz' });
     }
 
     quiz.isPublished = true;

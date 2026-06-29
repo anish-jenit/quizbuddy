@@ -3,7 +3,7 @@ import { generateToken, hashPassword, comparePassword } from '../utils/helpers.j
 
 export const register = async (req, res) => {
   try {
-    const { email, firstName, lastName, password, confirmPassword, registerAsTeacher } = req.body;
+    const { email, firstName, lastName, nickname, password, confirmPassword, registerAsTeacher } = req.body;
 
     if (!email || !firstName || !lastName || !password) {
       return res.status(400).json({ message: 'Please provide all required fields' });
@@ -26,6 +26,7 @@ export const register = async (req, res) => {
       email,
       firstName,
       lastName,
+      nickname: String(nickname || '').trim(),
       password: hashedPassword,
       role: 'student',
       approvalStatus: isTeacherRequest ? 'pending' : 'approved',
@@ -47,6 +48,7 @@ export const register = async (req, res) => {
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
+          nickname: user.nickname,
           role: user.role,
           approvalStatus: user.approvalStatus,
           requestedRole: user.requestedRole
@@ -63,6 +65,7 @@ export const register = async (req, res) => {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
+        nickname: user.nickname,
         role: user.role,
         approvalStatus: user.approvalStatus,
         requestedRole: user.requestedRole
@@ -112,6 +115,7 @@ export const login = async (req, res) => {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
+        nickname: user.nickname,
         role: user.role,
         approvalStatus: user.approvalStatus,
         requestedRole: user.requestedRole

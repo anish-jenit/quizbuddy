@@ -40,6 +40,34 @@ export const createGroup = async (req, res) => {
   }
 };
 
+export const updateGroupVisibility = async (req, res) => {
+  try {
+    const group = await Group.findById(req.params.id).populate('quizzes', 'title category');
+    if (!group) return res.status(404).json({ message: 'Group not found' });
+
+    const userId = req.user._id.toString();
+    if (group.createdBy.toString() !== userId && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Only the group owner or admin can change visibility' });
+    }
+
+    const visibility = req.body.visibility === 'public' ? 'public' : 'private';
+    if (visibility === 'public') {
+      const missingGenre = (group.quizzes || []).filter((quiz) => !quiz.category).map((quiz) => quiz.title);
+      if (missingGenre.length) {
+        return res.status(400).json({
+          message: `Add a genre before making this group public: ${missingGenre.join(', ')}`
+        });
+      }
+    }
+
+    group.quizVisibility = visibility;
+    await group.save();
+    return res.status(200).json({ success: true, message: `Group is now ${visibility}`, group });
+  } catch (error) {
+    return res.status(500).json({ message: 'Failed to update group visibility', error: error.message });
+  }
+};
+
 export const getGroupById = async (req, res) => {
   try {
     const { id } = req.params;

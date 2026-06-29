@@ -114,10 +114,10 @@ const Groups = () => {
                   </div>
                   
                   <div className="grid gap-2 text-sm text-gray-700 sm:grid-cols-2">
-                    <p><span className="font-medium text-gray-900">Students:</span> {group.students?.length || 0}</p>
+                    <p><span className="font-medium text-gray-900">Players:</span> {group.students?.length || 0}</p>
                     <p><span className="font-medium text-gray-900">Mentors:</span> {group.mentors?.length || 0}</p>
                     <p><span className="font-medium text-gray-900">Quizzes:</span> {group.quizzes?.length || 0}</p>
-                    <p><span className="font-medium text-gray-900">Quiz Access:</span> {(group.quizVisibility || 'private') === 'public' ? 'Public to all students' : 'Private to this group'}</p>
+                    <p><span className="font-medium text-gray-900">Quiz Access:</span> {(group.quizVisibility || 'private') === 'public' ? 'Public to all players' : 'Private to this group'}</p>
                   </div>
 
                   <div className="mt-auto flex flex-col gap-2 border-t border-gray-100 pt-4">
@@ -171,8 +171,8 @@ const Groups = () => {
                   onChange={(e) => setFormData({ ...formData, quizVisibility: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 >
-                  <option value="private">Private: only students in this group can attempt quizzes</option>
-                  <option value="public">Public: all students can see and attempt quizzes from this group</option>
+                  <option value="private">Private: only players in this group can attempt quizzes</option>
+                  <option value="public">Public: all players can see and attempt quizzes from this group</option>
                 </select>
               </div>
               <Button type="submit" variant="primary" className="w-full justify-center">

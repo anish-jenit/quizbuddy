@@ -18,7 +18,7 @@ const Quizzes = () => {
 
   const shareQuizOnWhatsApp = (quiz, quizId) => {
     const appUrl = window.location.origin;
-    const text = `📝 Quiz: *${quiz.title}*\n${quiz.description ? quiz.description + '\n' : ''}\nCategory: ${quiz.category} | Difficulty: ${quiz.difficulty}\n\nTake the quiz here:\n${appUrl}/quiz/${quizId}`;
+    const text = `📝 Quiz: *${quiz.title}*\n${quiz.description ? quiz.description + '\n' : ''}\nGenre: ${quiz.category || 'Not set'} | Difficulty: ${quiz.difficulty}\n\nTake the quiz here:\n${appUrl}/quiz/${quizId}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
   };
 
@@ -101,10 +101,10 @@ const Quizzes = () => {
                   </div>
                   
                   <div className="grid gap-2 text-sm text-gray-700 sm:grid-cols-2">
-                    <p><span className="font-medium text-gray-900">Category:</span> {quiz.category}</p>
+                    <p><span className="font-medium text-gray-900">Genre:</span> {quiz.category || 'Not set (private only)'}</p>
                     <p><span className="font-medium text-gray-900">Difficulty:</span> {quiz.difficulty}</p>
                     <p><span className="font-medium text-gray-900">Questions:</span> {quiz.questions?.length || 0}/10</p>
-                    <p><span className="font-medium text-gray-900">Audience:</span> {quiz.visibility === 'public' ? 'Public to all students' : 'Private to the tagged group'}</p>
+                    <p><span className="font-medium text-gray-900">Audience:</span> {quiz.visibility === 'public' ? 'Public to all players' : 'Private to the tagged group'}</p>
                     {quiz.group?.name && <p><span className="font-medium text-gray-900">Group:</span> {quiz.group.name}</p>}
                     <p>
                       <span className="font-medium">Status:</span>{' '}

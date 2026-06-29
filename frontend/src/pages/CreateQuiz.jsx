@@ -13,7 +13,7 @@ const CreateQuiz = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    category: 'Tamil',
+    category: '',
     difficulty: 'medium',
     timePerQuestion: 30,
     questionCount: 5,
@@ -67,6 +67,10 @@ const CreateQuiz = () => {
 
     if (isMentor && !formData.groupId) {
       setError('Please select a group for this quiz.');
+      return;
+    }
+    if ((selectedGroup?.quizVisibility || 'private') === 'public' && !formData.category) {
+      setError('Choose a core genre for this public quiz.');
       return;
     }
 
@@ -139,13 +143,16 @@ const CreateQuiz = () => {
               />
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Genre {(selectedGroup?.quizVisibility || 'private') === 'public' ? '(required)' : '(optional for private quizzes)'}
+                </label>
                 <select
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 >
+                  <option value="">No genre</option>
                   <option value="Tamil">Tamil</option>
                   <option value="English">English</option>
                   <option value="Math">Math</option>
@@ -213,7 +220,7 @@ const CreateQuiz = () => {
                 {selectedGroup && (
                   <p className="text-xs text-gray-500 mt-2">
                     Quiz visibility follows this group setting: {(selectedGroup.quizVisibility || 'private') === 'public'
-                      ? 'Public to all students'
+                      ? 'Public to all players'
                       : 'Private to members of this group'}.
                   </p>
                 )}

@@ -18,6 +18,8 @@ const QuizAttempt = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState(null);
+  const [timePerQuestion, setTimePerQuestion] = useState(30);
+  const [timeLeft, setTimeLeft] = useState(30);
 
   const [selectedOption, setSelectedOption] = useState('');
   const [selectedAnswer, setSelectedAnswer] = useState('');
@@ -47,6 +49,9 @@ const QuizAttempt = () => {
       setQuiz(quizRes.data.quiz);
       setQuestions(startRes.data.questions || []);
       setResponseId(startRes.data.quizResponse?.id || '');
+      const questionTime = Number(startRes.data.quizResponse?.timePerQuestion || quizRes.data.quiz?.timePerQuestion || 30);
+      setTimePerQuestion(questionTime);
+      setTimeLeft(questionTime);
     } catch (err) {
       const data = err.response?.data;
       if (data?.requiresGroupJoin) {
@@ -92,6 +97,15 @@ const QuizAttempt = () => {
 
   const currentQuestion = useMemo(() => questions[currentIndex], [questions, currentIndex]);
 
+  useEffect(() => {
+    if (!responseId || result || !currentQuestion) return undefined;
+    setTimeLeft(timePerQuestion);
+    const interval = window.setInterval(() => {
+      setTimeLeft((seconds) => Math.max(0, seconds - 1));
+    }, 1000);
+    return () => window.clearInterval(interval);
+  }, [currentIndex, currentQuestion?._id, responseId, result, timePerQuestion]);
+
   const applyQuizUpdate = (nextQuiz) => {
     if (nextQuiz) setQuiz(nextQuiz);
   };
@@ -126,7 +140,7 @@ const QuizAttempt = () => {
         questionId: currentQuestion._id,
         selectedOption: needsOption ? selectedOption : undefined,
         selectedAnswer: needsText ? selectedAnswer : selectedOption,
-        timeSpent: 0
+        timeSpent: Math.max(0, timePerQuestion - timeLeft)
       });
 
       const isLastQuestion = currentIndex === questions.length - 1;
@@ -305,6 +319,10 @@ const QuizAttempt = () => {
                     <span className="rounded-full bg-gray-100 px-2.5 py-1">Dislikes: {quiz?.dislikeCount || 0}</span>
                     <span className="rounded-full bg-gray-100 px-2.5 py-1">Reports: {quiz?.reportCount || 0}</span>
                   </div>
+                </div>
+                <div className={`rounded-xl px-4 py-3 text-center ${timeLeft <= 10 ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-700'}`}>
+                  <p className="text-xs font-medium uppercase tracking-wide">Time remaining</p>
+                  <p className="text-2xl font-bold tabular-nums">{Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, '0')}</p>
                 </div>
                 <div className="flex flex-wrap gap-2 md:justify-end">
                 <Button

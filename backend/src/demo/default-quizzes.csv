@@ -1,0 +1,51 @@
+quiz_title,description,category,difficulty,time_per_question,question,option_a,option_b,option_c,option_d,correct_option,explanation
+Tamil Language Essentials,Core Tamil language and culture,Tamil,easy,30,Which Tamil greeting means hello?,Vanakkam,Nandri,Saptiya,Poittu varen,A,Vanakkam is a respectful greeting.
+Tamil Language Essentials,Core Tamil language and culture,Tamil,easy,30,What does Nandri mean?,Welcome,Please,Thank you,Good night,C,Nandri means thank you.
+Tamil Language Essentials,Core Tamil language and culture,Tamil,easy,30,Which is the first letter of the Tamil alphabet?,அ,க,ச,த,A,The Tamil alphabet begins with அ.
+Tamil Language Essentials,Core Tamil language and culture,Tamil,easy,30,What does Amma mean?,Father,Mother,Sister,Friend,B,Amma means mother.
+Tamil Language Essentials,Core Tamil language and culture,Tamil,easy,30,What does Appa mean?,Father,Brother,Teacher,Grandfather,A,Appa means father.
+Tamil Language Essentials,Core Tamil language and culture,Tamil,easy,30,Which word means water in Tamil?,Neruppu,Kaatru,Thanneer,Mann,C,Thanneer means water.
+Tamil Language Essentials,Core Tamil language and culture,Tamil,easy,30,Which Tamil word means flower?,Poo,Maram,Ilai,Kai,A,Poo means flower.
+Tamil Language Essentials,Core Tamil language and culture,Tamil,easy,30,What is the Tamil harvest festival called?,Deepavali,Pongal,Holi,Onam,B,Pongal celebrates the harvest.
+Tamil Language Essentials,Core Tamil language and culture,Tamil,easy,30,Which classical language is primarily spoken in Tamil Nadu?,Tamil,Telugu,Kannada,Malayalam,A,Tamil is the primary language of Tamil Nadu.
+Tamil Language Essentials,Core Tamil language and culture,Tamil,easy,30,What does Vanakkam express?,A greeting,A number,A colour,A food,A,Vanakkam is used as a greeting.
+English Language Essentials,Core English vocabulary and grammar,English,easy,30,Which word is a noun?,Quickly,Happiness,Blue,Run,B,Happiness names a state or feeling.
+English Language Essentials,Core English vocabulary and grammar,English,easy,30,What is the plural of child?,Childs,Childes,Children,Childrens,C,Children is the irregular plural.
+English Language Essentials,Core English vocabulary and grammar,English,easy,30,Which word is the opposite of ancient?,Old,Modern,Historic,Past,B,Modern is the opposite of ancient.
+English Language Essentials,Core English vocabulary and grammar,English,easy,30,Choose the correctly spelled word.,Definately,Definitely,Definetly,Defanitely,B,Definitely is the correct spelling.
+English Language Essentials,Core English vocabulary and grammar,English,easy,30,Which sentence is in the past tense?,I walk home,I will walk home,I walked home,I am walking home,C,Walked marks the past tense.
+English Language Essentials,Core English vocabulary and grammar,English,easy,30,Which word is an adjective?,Beauty,Beautiful,Beautifully,Beautify,B,Beautiful describes a noun.
+English Language Essentials,Core English vocabulary and grammar,English,easy,30,What punctuation ends a direct question?,Period,Comma,Question mark,Colon,C,A direct question ends with a question mark.
+English Language Essentials,Core English vocabulary and grammar,English,easy,30,Which word is a synonym for rapid?,Slow,Fast,Quiet,Heavy,B,Fast is a synonym for rapid.
+English Language Essentials,Core English vocabulary and grammar,English,easy,30,Complete the phrase: She ___ reading.,are,is,am,be,B,She takes the singular verb is.
+English Language Essentials,Core English vocabulary and grammar,English,easy,30,Which is a complete sentence?,Because it rained,Running through town,The sun is shining,Under the table,C,It has a subject and a complete predicate.
+Math Foundations,Core arithmetic and reasoning,Math,easy,30,What is 7 plus 5?,10,11,12,13,C,Seven plus five equals twelve.
+Math Foundations,Core arithmetic and reasoning,Math,easy,30,What is 9 times 6?,45,54,56,63,B,Nine times six equals fifty-four.
+Math Foundations,Core arithmetic and reasoning,Math,easy,30,What is 81 divided by 9?,7,8,9,10,C,Eighty-one divided by nine equals nine.
+Math Foundations,Core arithmetic and reasoning,Math,easy,30,Which number is prime?,21,27,29,33,C,Twenty-nine has only two factors.
+Math Foundations,Core arithmetic and reasoning,Math,easy,30,What is half of 50?,20,25,30,35,B,Half of fifty is twenty-five.
+Math Foundations,Core arithmetic and reasoning,Math,easy,30,How many degrees are in a right angle?,45,90,180,360,B,A right angle measures ninety degrees.
+Math Foundations,Core arithmetic and reasoning,Math,easy,30,What is 15 percent of 100?,10,15,20,25,B,Fifteen percent of one hundred is fifteen.
+Math Foundations,Core arithmetic and reasoning,Math,easy,30,What is the next number: 2 4 6 8?,9,10,11,12,B,The pattern increases by two.
+Math Foundations,Core arithmetic and reasoning,Math,easy,30,What is the perimeter of a square with side 3?,6,9,12,15,C,Four sides times three equals twelve.
+Math Foundations,Core arithmetic and reasoning,Math,easy,30,Which fraction equals one half?,1/3,2/4,3/4,2/3,B,Two fourths simplifies to one half.
+Science Curiosities,Core science facts and concepts,Science,medium,30,Which planet is known as the Red Planet?,Venus,Mars,Jupiter,Mercury,B,Iron minerals make Mars appear red.
+Science Curiosities,Core science facts and concepts,Science,medium,30,What gas do plants absorb during photosynthesis?,Oxygen,Nitrogen,Carbon dioxide,Hydrogen,C,Plants use carbon dioxide to make sugars.
+Science Curiosities,Core science facts and concepts,Science,medium,30,Which part of a cell contains most genetic material?,Cell wall,Nucleus,Cytoplasm,Membrane,B,Most DNA is stored in the nucleus.
+Science Curiosities,Core science facts and concepts,Science,medium,30,What force pulls objects toward Earth?,Magnetism,Friction,Gravity,Electricity,C,Gravity attracts objects with mass.
+Science Curiosities,Core science facts and concepts,Science,medium,30,At sea level water boils at what Celsius temperature?,50,75,100,120,C,Water boils at one hundred degrees Celsius.
+Science Curiosities,Core science facts and concepts,Science,medium,30,Which organ pumps blood around the body?,Lungs,Heart,Liver,Kidney,B,The heart pumps blood through the circulatory system.
+Science Curiosities,Core science facts and concepts,Science,medium,30,What is the closest star to Earth?,Sirius,Polaris,The Sun,Betelgeuse,C,The Sun is Earth's closest star.
+Science Curiosities,Core science facts and concepts,Science,medium,30,Which state of matter has a fixed shape?,Gas,Liquid,Solid,Plasma,C,A solid keeps its shape under ordinary conditions.
+Science Curiosities,Core science facts and concepts,Science,medium,30,What do bees collect from flowers?,Salt,Nectar,Sand,Stone,B,Bees collect nectar to make honey.
+Science Curiosities,Core science facts and concepts,Science,medium,30,Which vitamin is produced in skin exposed to sunlight?,Vitamin A,Vitamin C,Vitamin D,Vitamin K,C,Sunlight helps the skin produce vitamin D.
+History and World Knowledge,Core history and geography,History,medium,40,Which civilization built Machu Picchu?,Roman,Inca,Egyptian,Maya,B,Machu Picchu was built by the Inca.
+History and World Knowledge,Core history and geography,History,medium,40,What is the largest ocean on Earth?,Atlantic,Indian,Arctic,Pacific,D,The Pacific is Earth's largest ocean.
+History and World Knowledge,Core history and geography,History,medium,40,Which continent has the most countries?,Africa,Europe,Asia,South America,A,Africa has the most sovereign countries.
+History and World Knowledge,Core history and geography,History,medium,40,The pyramids of Giza are in which country?,Mexico,Egypt,India,Greece,B,The Giza pyramid complex is in Egypt.
+History and World Knowledge,Core history and geography,History,medium,40,Which city was buried by Mount Vesuvius?,Pompeii,Athens,Sparta,Rome,A,Pompeii was buried by the eruption in 79 CE.
+History and World Knowledge,Core history and geography,History,medium,40,Who was the first person to walk on the Moon?,Yuri Gagarin,Neil Armstrong,Buzz Aldrin,John Glenn,B,Neil Armstrong walked on the Moon in 1969.
+History and World Knowledge,Core history and geography,History,medium,40,Which country gifted the Statue of Liberty to the United States?,France,Spain,Italy,Canada,A,France gifted the statue.
+History and World Knowledge,Core history and geography,History,medium,40,Which ancient people developed democracy in Athens?,Romans,Greeks,Vikings,Persians,B,Ancient Athenians developed an early democracy.
+History and World Knowledge,Core history and geography,History,medium,40,Which is the longest river in South America?,Nile,Amazon,Danube,Yangtze,B,The Amazon is South America's longest river.
+History and World Knowledge,Core history and geography,History,medium,40,On which continent is the Sahara Desert?,Asia,Africa,Australia,Europe,B,The Sahara stretches across North Africa.

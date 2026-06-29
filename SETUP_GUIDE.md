@@ -16,9 +16,32 @@ Demo credentials:
 - Student: `student1@example.com` / `student1`
 - Admin: `admin@example.com` / `Admin@123`
 
-Students can also choose guest mode from Student Login and enter an anonymous
+Players can also choose guest mode from the home page and enter an anonymous
 leaderboard name. Guests can attempt published quizzes belonging to public
 groups. Their scores and session exist only until the demo server restarts.
+
+Guest entry is available directly from the home page. Registered players can
+optionally choose a leaderboard nickname during registration.
+
+### Demo quiz CSV uploads
+
+Demo mode loads five core genre quizzes (Tamil, English, Math, Science, and
+History) with 10 questions each from `backend/src/demo/default-quizzes.csv`
+whenever the server starts. Admins can upload additional or replacement public quizzes
+from the Admin Dashboard. Download the template there, or use these columns:
+
+```text
+quiz_title,description,category,difficulty,time_per_question,question,option_a,option_b,option_c,option_d,correct_option,explanation
+```
+
+Use one row per question. Rows with the same `quiz_title` form one quiz;
+`correct_option` must be `A`, `B`, `C`, or `D`, with a maximum of 10 questions
+per quiz. Uploading an existing title replaces that quiz for the current demo
+session.
+
+Every public quiz must use one of the five core genres. A private quiz may omit
+its genre, but its group cannot be changed to public until all of its quizzes
+have a genre.
 
 For hosting without MongoDB, set `DEMO_MODE=true`. If `MONGODB_URI` is not
 configured, the backend automatically starts in demo mode. Demo data is held in

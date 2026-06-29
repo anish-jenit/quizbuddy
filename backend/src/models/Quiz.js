@@ -8,7 +8,6 @@ const quizSchema = new mongoose.Schema({
   description: String,
   category: {
     type: String,
-    required: true,
     enum: ['Tamil', 'English', 'Math', 'Science', 'History']
   },
   difficulty: {

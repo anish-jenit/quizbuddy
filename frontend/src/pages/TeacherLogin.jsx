@@ -89,9 +89,9 @@ const TeacherLogin = () => {
         </p>
 
         <p className="mt-6 text-center text-gray-600 leading-6">
-          Student account?{' '}
+          Player account?{' '}
           <button onClick={() => navigate('/login/student')} className="text-blue-600 hover:underline font-medium">
-            Go to Student Login
+            Go to Player Login
           </button>
         </p>
 

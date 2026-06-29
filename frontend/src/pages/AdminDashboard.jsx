@@ -14,6 +14,9 @@ const AdminDashboard = () => {
   const [reportedQuizzes, setReportedQuizzes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [importFile, setImportFile] = useState(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importMessage, setImportMessage] = useState('');
 
   useEffect(() => {
     fetchAdminData();
@@ -80,6 +83,40 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleQuizImport = async (event) => {
+    event.preventDefault();
+    if (!importFile) return;
+    try {
+      setIsImporting(true);
+      setError(null);
+      setImportMessage('');
+      const csv = await importFile.text();
+      const response = await adminAPI.importPublicQuizzes(csv);
+      setImportMessage(response.data.message);
+      setImportFile(null);
+      event.target.reset();
+      await fetchAdminData();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to import quiz CSV');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const downloadTemplate = async () => {
+    try {
+      const response = await adminAPI.downloadQuizImportTemplate();
+      const url = URL.createObjectURL(response.data);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'quiz-import-template.csv';
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError('Failed to download CSV template');
+    }
+  };
+
   if (isLoading) return <Loading />;
 
   return (
@@ -91,6 +128,31 @@ const AdminDashboard = () => {
           <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
 
           {error && <div className="mb-6"><Alert type="error" onClose={() => setError(null)}>{error}</Alert></div>}
+
+          <Card className="mb-8">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <h2 className="text-xl font-semibold mb-2">Bulk Upload Public Quizzes</h2>
+                <p className="text-sm text-gray-600 max-w-2xl">
+                  Upload a CSV with one row per multiple-choice question. Every public quiz must use one of five genres: Tamil, English, Math, Science, or History.
+                </p>
+              </div>
+              <Button variant="secondary" onClick={downloadTemplate}>Download CSV Template</Button>
+            </div>
+            <form onSubmit={handleQuizImport} className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <input
+                type="file"
+                accept=".csv,text/csv"
+                onChange={(event) => setImportFile(event.target.files?.[0] || null)}
+                className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
+                required
+              />
+              <Button type="submit" variant="primary" isLoading={isImporting} className="shrink-0 justify-center">
+                Upload & Publish
+              </Button>
+            </form>
+            {importMessage && <div className="mt-4"><Alert type="success">{importMessage}</Alert></div>}
+          </Card>
 
           {/* Stats Grid */}
           <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-5">

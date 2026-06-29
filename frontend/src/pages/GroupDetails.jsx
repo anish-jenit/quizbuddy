@@ -94,10 +94,10 @@ const GroupDetails = () => {
       setIsAddingStudent(true);
       await groupAPI.addStudentByEmail(id, { studentEmail: studentEmail.trim() });
       setStudentEmail('');
-      flash('Student added successfully');
+      flash('Player added successfully');
       await loadGroup();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to add student');
+      setError(err.response?.data?.message || 'Failed to add player');
     } finally {
       setIsAddingStudent(false);
     }
@@ -107,10 +107,10 @@ const GroupDetails = () => {
     setError('');
     try {
       await groupAPI.removeStudent(id, { studentId });
-      flash('Student removed');
+      flash('Player removed');
       await loadGroup();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to remove student');
+      setError(err.response?.data?.message || 'Failed to remove player');
     }
   };
 
@@ -122,6 +122,17 @@ const GroupDetails = () => {
       await loadGroup();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to review request');
+    }
+  };
+
+  const handleVisibilityChange = async (event) => {
+    try {
+      setError('');
+      await groupAPI.updateVisibility(id, event.target.value);
+      flash(`Group is now ${event.target.value}`);
+      await loadGroup();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to update group visibility');
     }
   };
 
@@ -154,9 +165,23 @@ const GroupDetails = () => {
                 </div>
                 <p className="mt-4 text-sm text-gray-700">
                   <span className="font-medium">Quiz Access:</span> {(group.quizVisibility || 'private') === 'public'
-                    ? ' Public to all students across QuizBuddy'
-                    : ' Private to students who join this group'}
+                    ? ' Public to all players across QuizBuddy'
+                    : ' Private to players who join this group'}
                 </p>
+                {(isOwner || user?.role === 'admin') && (
+                  <div className="mt-4 max-w-sm">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Group Visibility</label>
+                    <select
+                      value={group.quizVisibility || 'private'}
+                      onChange={handleVisibilityChange}
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                    >
+                      <option value="private">Private</option>
+                      <option value="public">Public</option>
+                    </select>
+                    <p className="mt-1 text-xs text-gray-500">Every quiz must have a genre before this group can become public.</p>
+                  </div>
+                )}
               </Card>
 
               {/* Pending mentor requests — owner only */}
@@ -239,13 +264,13 @@ const GroupDetails = () => {
 
                 {/* Students */}
                 <Card>
-                  <h3 className="text-lg font-semibold mb-3">Students ({group.students?.length || 0})</h3>
+                  <h3 className="text-lg font-semibold mb-3">Players ({group.students?.length || 0})</h3>
 
                   {canManage && (
                     <form onSubmit={handleAddStudent} className="mb-4 flex flex-col gap-2 sm:flex-row">
                       <Input
                         className="w-full"
-                        placeholder="student@email.com"
+                        placeholder="player@email.com"
                         value={studentEmail}
                         onChange={(e) => setStudentEmail(e.target.value)}
                         required
@@ -257,7 +282,7 @@ const GroupDetails = () => {
                   )}
 
                   {(group.students || []).length === 0 ? (
-                    <p className="text-gray-500 text-sm">No students in this group</p>
+                    <p className="text-gray-500 text-sm">No players in this group</p>
                   ) : (
                     <ul className="space-y-2">
                       {(group.students || []).map((student) => {

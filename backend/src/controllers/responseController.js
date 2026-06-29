@@ -281,7 +281,7 @@ export const getLeaderboard = async (req, res) => {
     const query = { quiz: quizId, period: period || 'all-time' };
     if (groupId) query.group = groupId;
 
-    const leaderboard = await Leaderboard.findOne(query).populate('entries.student', 'firstName lastName email');
+    const leaderboard = await Leaderboard.findOne(query).populate('entries.student', 'firstName lastName nickname email');
 
     if (!leaderboard) {
       return res.status(404).json({ message: 'Leaderboard not found' });

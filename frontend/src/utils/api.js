@@ -76,6 +76,7 @@ export const groupAPI = {
   reviewMentorRequest: (groupId, data) => api.put(`/groups/${groupId}/review-mentor`, data),
   addStudentByEmail: (groupId, data) => api.post(`/groups/${groupId}/add-student`, data),
   removeStudent: (groupId, data) => api.post(`/groups/${groupId}/remove-student`, data),
+  updateVisibility: (groupId, visibility) => api.put(`/groups/${groupId}/visibility`, { visibility }),
 };
 
 // Admin APIs
@@ -89,6 +90,8 @@ export const adminAPI = {
   resolveReport: (data) => api.put('/admin/questions/report/resolve', data),
   getReportedQuizzes: () => api.get('/admin/quizzes/reported'),
   reviewQuizReport: (data) => api.put('/admin/quizzes/report/review', data),
+  importPublicQuizzes: (csv) => api.post('/admin/quizzes/import', { csv }),
+  downloadQuizImportTemplate: () => api.get('/admin/quizzes/import-template', { responseType: 'blob' }),
   getDashboardStats: () => api.get('/admin/stats'),
   getPendingMentorRemovals: () => api.get('/admin/mentor-removals/pending'),
   reviewMentorRemoval: (data) => api.put('/admin/mentor-removals/review', data),

@@ -1,12 +1,16 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import { randomUUID } from 'crypto';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { parseQuizCsv, quizCsvTemplate } from './csvQuizImporter.js';
 
 const router = express.Router();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'demo-secret-key';
 const JWT_EXPIRE = process.env.JWT_EXPIRE || '7d';
 const QUIZ_REPORT_THRESHOLD = 5;
+const CORE_GENRES = ['Tamil', 'English', 'Math', 'Science', 'History'];
 
 const nowIso = () => new Date().toISOString();
 
@@ -114,6 +118,97 @@ const baseUsers = [
 
 state.users.push(...baseUsers);
 
+const importQuizSpecs = (quizSpecs, createdBy) => {
+  let publicGroup = state.groups.find((group) => group.name === 'Public Quiz Library');
+  if (!publicGroup) {
+    publicGroup = {
+      id: randomUUID(),
+      _id: null,
+      name: 'Public Quiz Library',
+      description: 'Public quizzes available to every player',
+      category: 'General',
+      code: 'PUBLIC01',
+      quizVisibility: 'public',
+      createdBy,
+      mentors: [],
+      students: [],
+      pendingMentors: [],
+      pendingMentorRemovals: [],
+      quizzes: [],
+      createdAt: nowIso(),
+      updatedAt: nowIso()
+    };
+    publicGroup._id = publicGroup.id;
+    state.groups.push(publicGroup);
+  }
+
+  let questionCount = 0;
+  quizSpecs.forEach((spec) => {
+    const existing = state.quizzes.find((quiz) => quiz.title.toLowerCase() === spec.title.toLowerCase());
+    if (existing) {
+      state.questions = state.questions.filter((question) => question.quiz !== existing.id);
+      state.quizzes = state.quizzes.filter((quiz) => quiz.id !== existing.id);
+      publicGroup.quizzes = publicGroup.quizzes.filter((id) => id !== existing.id);
+    }
+
+    const quiz = {
+      id: randomUUID(),
+      _id: null,
+      title: spec.title,
+      description: spec.description,
+      category: ['Tamil', 'English', 'Math', 'Science', 'History'].includes(spec.category) ? spec.category : 'Tamil',
+      difficulty: ['easy', 'medium', 'hard'].includes(spec.difficulty) ? spec.difficulty : 'medium',
+      createdBy,
+      group: publicGroup.id,
+      questions: [],
+      timePerQuestion: spec.timePerQuestion,
+      reactions: [],
+      reports: [],
+      likeCount: 0,
+      dislikeCount: 0,
+      reportCount: 0,
+      moderationStatus: 'approved',
+      isPublished: true,
+      isActive: true,
+      createdAt: nowIso(),
+      updatedAt: nowIso()
+    };
+    quiz._id = quiz.id;
+
+    spec.questions.forEach((item) => {
+      const question = {
+        id: randomUUID(),
+        _id: null,
+        quiz: quiz.id,
+        questionText: item.questionText,
+        questionType: 'multiple-choice',
+        options: item.options,
+        correctAnswer: item.correctAnswer,
+        explanation: item.explanation,
+        difficulty: item.difficulty,
+        isReported: false,
+        reports: [],
+        createdAt: nowIso(),
+        updatedAt: nowIso()
+      };
+      question._id = question.id;
+      state.questions.push(question);
+      quiz.questions.push(question.id);
+      questionCount += 1;
+    });
+
+    state.quizzes.push(quiz);
+    publicGroup.quizzes.push(quiz.id);
+  });
+
+  publicGroup.updatedAt = nowIso();
+  return { quizCount: quizSpecs.length, questionCount };
+};
+
+const adminSeedUser = baseUsers.find((user) => user.role === 'admin');
+const defaultCsvPath = fileURLToPath(new URL('./default-quizzes.csv', import.meta.url));
+importQuizSpecs(parseQuizCsv(readFileSync(defaultCsvPath, 'utf8')), adminSeedUser.id);
+
 const stripPassword = (user) => {
   const { password, ...safeUser } = user;
   return safeUser;
@@ -132,6 +227,7 @@ const summarizeUser = (user) => (
         _id: user.id,
         firstName: user.firstName,
         lastName: user.lastName,
+        nickname: user.nickname || '',
         email: user.email
       }
     : null
@@ -296,7 +392,7 @@ router.get('/health', (req, res) => {
 });
 
 router.post('/auth/register', (req, res) => {
-  const { email, firstName, lastName, password, confirmPassword, registerAsTeacher } = req.body;
+  const { email, firstName, lastName, nickname, password, confirmPassword, registerAsTeacher } = req.body;
 
   if (!email || !firstName || !lastName || !password) {
     return res.status(400).json({ message: 'Please provide all required fields' });
@@ -315,6 +411,7 @@ router.post('/auth/register', (req, res) => {
     email: email.toLowerCase(),
     firstName,
     lastName,
+    nickname: String(nickname || '').trim(),
     password,
     role: 'student',
     approvalStatus: registerAsTeacher ? 'pending' : 'approved',
@@ -374,6 +471,7 @@ router.post('/auth/guest', (req, res) => {
     email: `guest-${randomUUID()}@demo.local`,
     firstName,
     lastName: lastNameParts.join(' '),
+    nickname: name,
     password: null,
     role: 'student',
     isGuest: true,
@@ -462,8 +560,8 @@ router.put('/auth/change-password', auth, (req, res) => {
 router.post('/quizzes', auth, requireRoles('mentor', 'admin'), (req, res) => {
   const { title, description, category, difficulty, groupId, timePerQuestion } = req.body;
 
-  if (!title || !category) {
-    return res.status(400).json({ message: 'Title and category are required' });
+  if (!title) {
+    return res.status(400).json({ message: 'Title is required' });
   }
 
   let group = null;
@@ -488,12 +586,19 @@ router.post('/quizzes', auth, requireRoles('mentor', 'admin'), (req, res) => {
     }
   }
 
+  if (group?.quizVisibility === 'public' && !CORE_GENRES.includes(category)) {
+    return res.status(400).json({ message: 'Public quizzes must have one of the five core genres' });
+  }
+  if (category && !CORE_GENRES.includes(category)) {
+    return res.status(400).json({ message: 'Invalid quiz genre' });
+  }
+
   const quiz = {
     id: randomUUID(),
     _id: null,
     title,
     description: description || '',
-    category,
+    category: category || '',
     difficulty: difficulty || 'medium',
     createdBy: req.user.id,
     group: groupId || null,
@@ -572,6 +677,12 @@ router.put('/quizzes/:id', auth, requireRoles('mentor', 'admin'), (req, res) => 
     return res.status(403).json({ message: 'Unauthorized to update this quiz' });
   }
 
+  const group = quiz.group ? getGroupById(quiz.group) : null;
+  const nextGenre = req.body.category !== undefined ? req.body.category : quiz.category;
+  if (group?.quizVisibility === 'public' && !CORE_GENRES.includes(nextGenre)) {
+    return res.status(400).json({ message: 'Public quizzes must have one of the five core genres' });
+  }
+
   Object.assign(quiz, req.body, { updatedAt: nowIso() });
 
   return res.status(200).json({
@@ -603,6 +714,11 @@ router.put('/quizzes/:id/publish', auth, requireRoles('mentor', 'admin'), (req, 
   const questionCount = findQuizQuestions(quiz.id).length;
   if (questionCount === 0) return res.status(400).json({ message: 'Quiz must have at least one question' });
   if (questionCount > 10) return res.status(400).json({ message: 'Quiz cannot have more than 10 questions' });
+
+  const group = quiz.group ? getGroupById(quiz.group) : null;
+  if (group?.quizVisibility === 'public' && !CORE_GENRES.includes(quiz.category)) {
+    return res.status(400).json({ message: 'Choose a core genre before publishing this public quiz' });
+  }
 
   quiz.isPublished = true;
   quiz.updatedAt = nowIso();
@@ -963,6 +1079,7 @@ router.get('/responses/leaderboard', auth, (req, res) => {
             _id: student.id,
             firstName: student.firstName,
             lastName: student.lastName,
+            nickname: student.nickname || '',
             email: student.email
           }
         : null
@@ -1030,6 +1147,29 @@ router.get('/groups/:id', auth, (req, res) => {
   };
 
   return res.status(200).json({ success: true, group: populated });
+});
+
+router.put('/groups/:id/visibility', auth, (req, res) => {
+  const group = getGroupById(req.params.id);
+  if (!group) return res.status(404).json({ message: 'Group not found' });
+  if (group.createdBy !== req.user.id && req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Only the group owner or admin can change visibility' });
+  }
+
+  const visibility = req.body.visibility === 'public' ? 'public' : 'private';
+  if (visibility === 'public') {
+    const missingGenre = (group.quizzes || [])
+      .map((id) => state.quizzes.find((quiz) => quiz.id === id))
+      .filter((quiz) => quiz && !CORE_GENRES.includes(quiz.category))
+      .map((quiz) => quiz.title);
+    if (missingGenre.length) {
+      return res.status(400).json({ message: `Add a genre before making this group public: ${missingGenre.join(', ')}` });
+    }
+  }
+
+  group.quizVisibility = visibility;
+  group.updatedAt = nowIso();
+  return res.status(200).json({ success: true, message: `Group is now ${visibility}`, group });
 });
 
 router.post('/groups/join', auth, (req, res) => {
@@ -1347,6 +1487,24 @@ router.get('/admin/quizzes/reported', auth, requireRoles('admin'), (req, res) =>
     .sort((a, b) => (b.reportCount || 0) - (a.reportCount || 0));
 
   return res.status(200).json({ success: true, reportedQuizzes });
+});
+
+router.get('/admin/quizzes/import-template', auth, requireRoles('admin'), (req, res) => {
+  res.type('text/csv').send(quizCsvTemplate);
+});
+
+router.post('/admin/quizzes/import', auth, requireRoles('admin'), (req, res) => {
+  try {
+    const quizSpecs = parseQuizCsv(req.body?.csv);
+    const imported = importQuizSpecs(quizSpecs, req.user.id);
+    return res.status(201).json({
+      success: true,
+      message: `Imported ${imported.quizCount} public quizzes with ${imported.questionCount} questions`,
+      ...imported
+    });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
 });
 
 router.put('/admin/quizzes/report/review', auth, requireRoles('admin'), (req, res) => {

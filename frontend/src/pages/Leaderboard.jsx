@@ -127,7 +127,7 @@ const Leaderboard = () => {
                           <span className="font-bold text-lg text-blue-600">#{entry.rank || index + 1}</span>
                         </td>
                         <td className="py-3 px-4">
-                          {entry.student?.firstName} {entry.student?.lastName}
+                          {entry.student?.nickname || `${entry.student?.firstName || ''} ${entry.student?.lastName || ''}`.trim()}
                         </td>
                         <td className="py-3 px-4">
                           <span className="font-semibold">{entry.averageScore?.toFixed(1) || 0}%</span>
